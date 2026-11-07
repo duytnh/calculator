@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng Đếm Tiền Thông Minh</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-600 p-2 rounded-xl border border-emerald-500">
+                    <i class="fa-solid font-bold fa-wallet text-2xl text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">Máy Đếm Tiền VND</h1>
+                    <p class="text-xs text-emerald-200">Công cụ tính tổng tiền mặt chính xác & nhanh chóng</p>
+                </div>
+            </div>
+            <button onclick="resetAll()" class="bg-emerald-800 hover:bg-emerald-900 text-emerald-100 px-3 py-1.5 rounded-lg text-sm flex items-center transition active:scale-95">
+                <i class="fa-solid fa-rotate-left mr-1.5"></i> Đặt lại
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto px-4 pt-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        <!-- Column Left: Denominations List -->
+        <div class="md:col-span-7 space-y-3">
+
+            <div class="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Mệnh giá tiền</span>
+                <div class="space-x-2">
+                    <button onclick="quickFillAll(0)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1 rounded-md transition whitespace-nowrap">Xóa số tờ</button>
+                </div>
+            </div>
+
+            <!-- List of Money Denominations -->
+            <div id="denominationsList" class="space-y-2">
+                <!-- Rendered dynamically via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Column Right: Summary & Tools -->
+        <div class="md:col-span-5 space-y-5">
+            
+            <!-- Sticky Summary Card -->
+            <div class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white rounded-2xl p-5 shadow-lg sticky top-20 border border-emerald-700">
+                <div class="text-emerald-200 text-xs uppercase tracking-wider font-semibold mb-1">Tổng tiền mặt</div>
+                <div class="text-3xl sm:text-4xl font-extrabold text-yellow-300 tracking-tight break-all" id="totalAmount">
+                    0 <span class="text-xl font-normal text-white">₫</span>
+                </div>
+                <div class="mt-2 text-xs text-emerald-200 flex justify-between border-t border-emerald-700/60 pt-2">
+                    <span>Tổng số tờ / xu:</span>
+                    <span id="totalNotesCount" class="font-bold text-white">0 tờ</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-5 grid grid-cols-2 gap-2">
+                    <button onclick="saveToHistory()" class="bg-yellow-500 hover:bg-yellow-400 text-emerald-950 font-bold py-2.5 px-3 rounded-xl text-sm flex items-center justify-center transition shadow active:scale-95">
+                        <i class="fa-solid fa-bookmark mr-2"></i> Lưu lịch sử
+                    </button>
+                    <button onclick="copySummary()" class="bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-3 rounded-xl text-sm flex items-center justify-center transition active:scale-95">
+                        <i class="fa-solid fa-copy mr-2"></i> Sao chép
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calculator / Change Feature -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-semibold text-slate-700 text-sm flex items-center">
+                    <i class="fa-solid fa-calculator text-emerald-600 mr-2"></i> Tính Tiền Thối / Số Dư
+                </h3>
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">Số tiền cần thanh toán:</label>
+                    <input type="number" id="targetAmount" placeholder="Nhập số tiền..." oninput="calculateChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div id="changeResult" class="hidden p-3 rounded-lg text-sm">
+                    <!-- Dynamic result inserted here -->
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-slate-700 text-sm flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-600 mr-2"></i> Lịch sử đếm tiền
+                    </h3>
+                    <button onclick="clearHistory()" class="text-xs text-red-500 hover:underline">Xóa lịch sử</button>
+                </div>
+                <div id="historyList" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-sm">
+                    <p class="text-xs text-slate-400 text-center py-4">Chưa có lịch sử đếm nào được lưu</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-xl text-sm flex items-center space-x-2 translate-y-16 opacity-0 transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
+
+    <!-- History Detail Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="bg-emerald-700 text-white px-5 py-4 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-lg leading-tight" id="modalTitle">Chi tiết bản ghi</h3>
+                    <p class="text-xs text-emerald-200" id="modalSubtitle">Thời gian đếm</p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-emerald-800 hover:bg-emerald-900 text-emerald-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto space-y-3" id="modalBody">
+                <!-- Dynamic detail lines rendered here -->
+            </div>
+
+            <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex justify-between items-center">
+                <button id="btnLoadHistoryData" onclick="" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-3 py-2 rounded-lg flex items-center transition active:scale-95">
+                    <i class="fa-solid fa-arrow-rotate-left mr-1.5"></i> Nạp lại dữ liệu này
+                </button>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block">Tổng cộng</span>
+                    <span class="font-extrabold text-emerald-700 text-lg leading-tight" id="modalTotal">0 ₫</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Vietnam Dong Denominations Configuration (Lowest: 1,000 VND)
+        const denominations = [
+            { value: 500000, label: '500k', color: 'bg-blue-600', border: 'border-blue-200' },
+            { value: 200000, label: '200k', color: 'bg-amber-700', border: 'border-amber-200' },
+            { value: 100000, label: '100k', color: 'bg-emerald-600', border: 'border-emerald-200' },
+            { value: 50000, label: '50k', color: 'bg-pink-600', border: 'border-pink-200' },
+            { value: 20000, label: '20k', color: 'bg-cyan-600', border: 'border-cyan-200' },
+            { value: 10000, label: '10k', color: 'bg-yellow-700', border: 'border-yellow-200' },
+            { value: 5000, label: '5k', color: 'bg-indigo-600', border: 'border-indigo-200' },
+            { value: 2000, label: '2k', color: 'bg-amber-800', border: 'border-amber-200' },
+            { value: 1000, label: '1k', color: 'bg-purple-600', border: 'border-purple-200' }
+        ];
+
+        // Store counts of each denomination
+        let counts = {};
+        denominations.forEach(d => counts[d.value] = 0);
+
+        // Saved History
+        let history = [];
+
+        // Initialize App
+        window.onload = function() {
+            renderDenominations();
+            loadHistory();
+            calculateTotal();
+        };
+
+        // Render denomination rows
+        function renderDenominations() {
+            const container = document.getElementById('denominationsList');
+            container.innerHTML = '';
+
+            denominations.forEach(item => {
+                const val = item.value;
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between p-2 sm:p-2.5 bg-white rounded-xl shadow-sm border ${item.border} hover:shadow-md transition duration-200 gap-1.5 sm:gap-2`;
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0 w-16 sm:w-20">
+                        <div class="w-2 h-7 rounded-full ${item.color} shrink-0"></div>
+                        <span class="font-bold text-slate-800 text-sm sm:text-base whitespace-nowrap">${item.label}</span>
+                    </div>
+
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button onclick="updateCount(${val}, -1)" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 rounded-lg transition font-bold text-base select-none shrink-0">
+                            -
+                        </button>
+                        
+                        <input type="number" 
+                               id="input-${val}" 
+                               min="0" 
+                               value="${counts[val] || ''}" 
+                               placeholder="0"
+                               oninput="onInputChange(${val}, this.value)"
+                               class="w-12 sm:w-20 text-center font-bold text-slate-800 text-sm sm:text-base bg-slate-50 border border-slate-300 rounded-lg py-0.5 sm:py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 shrink-0">
+
+                        <button onclick="updateCount(${val}, 1)" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 rounded-lg transition font-bold text-base select-none shrink-0">
+                            +
+                        </button>
+                    </div>
+
+                    <div class="text-right shrink-0 border-l border-slate-100 pl-1.5 sm:pl-2 w-20 sm:w-28">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-tight whitespace-nowrap">Thành tiền</div>
+                        <div id="subtotal-${val}" class="font-bold text-slate-700 text-xs sm:text-sm whitespace-nowrap">0</div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Handle increment / decrement
+        function updateCount(value, delta) {
+            const current = counts[value] || 0;
+            const newCount = Math.max(0, current + delta);
+            counts[value] = newCount;
+
+            const inputEl = document.getElementById(`input-${value}`);
+            if (inputEl) {
+                inputEl.value = newCount > 0 ? newCount : '';
+            }
+            
+            updateSubtotal(value);
+            calculateTotal();
+        }
+
+        // Handle direct input change
+        function onInputChange(value, rawVal) {
+            const num = parseInt(rawVal, 10);
+            counts[value] = isNaN(num) || num < 0 ? 0 : num;
+            updateSubtotal(value);
+            calculateTotal();
+        }
+
+        // Compact Money Format for Subtotals (e.g. 1.5M, 500k, 50k, 0)
+        function formatCompactMoney(amount) {
+            if (amount === 0) return '0';
+            if (amount >= 1000000) {
+                const millions = amount / 1000000;
+                return (Number.isInteger(millions) ? millions : millions.toFixed(2)) + 'M';
+            }
+            return (amount / 1000) + 'k';
+        }
+
+        // Update subtotal for a single denomination
+        function updateSubtotal(value) {
+            const subtotal = (counts[value] || 0) * value;
+            const subtotalEl = document.getElementById(`subtotal-${value}`);
+            if (subtotalEl) {
+                subtotalEl.innerText = formatCompactMoney(subtotal);
+                if (subtotal > 0) {
+                    subtotalEl.classList.add('text-emerald-700');
+                    subtotalEl.classList.remove('text-slate-700');
+                } else {
+                    subtotalEl.classList.remove('text-emerald-700');
+                    subtotalEl.classList.add('text-slate-700');
+                }
+            }
+        }
+
+        // Calculate Grand Total
+        function calculateTotal() {
+            let totalAmount = 0;
+            let totalNotes = 0;
+
+            denominations.forEach(d => {
+                const count = counts[d.value] || 0;
+                totalAmount += count * d.value;
+                totalNotes += count;
+            });
+
+            document.getElementById('totalAmount').innerHTML = `${formatMoney(totalAmount)} <span class="text-xl font-normal text-white">₫</span>`;
+            document.getElementById('totalNotesCount').innerText = `${formatMoney(totalNotes)} tờ`;
+
+            calculateChange();
+        }
+
+        // Format Currency Helper
+        function formatMoney(amount) {
+            return amount.toLocaleString('vi-VN');
+        }
+
+        // Reset all inputs
+        function resetAll() {
+            denominations.forEach(d => {
+                counts[d.value] = 0;
+                const inputEl = document.getElementById(`input-${d.value}`);
+                if (inputEl) inputEl.value = '';
+                updateSubtotal(d.value);
+            });
+            document.getElementById('targetAmount').value = '';
+            calculateTotal();
+            showToast('Đã đặt lại tất cả dữ liệu');
+        }
+
+        // Quick fill 0
+        function quickFillAll(val) {
+            resetAll();
+        }
+
+        // Calculate Change / Target Balance
+        function calculateChange() {
+            const targetInput = document.getElementById('targetAmount').value;
+            const resultBox = document.getElementById('changeResult');
+
+            if (!targetInput || isNaN(targetInput) || parseInt(targetInput) <= 0) {
+                resultBox.classList.add('hidden');
+                return;
+            }
+
+            const target = parseInt(targetInput, 10);
+            let currentTotal = 0;
+            denominations.forEach(d => { currentTotal += (counts[d.value] || 0) * d.value; });
+
+            const diff = currentTotal - target;
+
+            resultBox.classList.remove('hidden', 'bg-emerald-50', 'bg-red-50', 'bg-amber-50', 'text-emerald-800', 'text-red-800', 'text-amber-800');
+
+            if (diff === 0) {
+                resultBox.classList.add('bg-emerald-50', 'text-emerald-800');
+                resultBox.innerHTML = `
+                    <div class="font-bold flex items-center"><i class="fa-solid fa-circle-check mr-2"></i> Khớp số tiền!</div>
+                    <div class="text-xs mt-1">Số tiền mặt đếm được vừa đủ cho thanh toán.</div>
+                `;
+            } else if (diff > 0) {
+                resultBox.classList.add('bg-emerald-50', 'text-emerald-800');
+                resultBox.innerHTML = `
+                    <div class="font-bold flex items-center"><i class="fa-solid fa-arrow-down-left-and-arrow-up-right-to-center mr-2"></i> Tiền thối lại: ${formatMoney(diff)} ₫</div>
+                    <div class="text-xs mt-1">Tiền mặt lớn hơn số tiền cần thanh toán.</div>
+                `;
+            } else {
+                resultBox.classList.add('bg-red-50', 'text-red-800');
+                resultBox.innerHTML = `
+                    <div class="font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Còn thiếu: ${formatMoney(Math.abs(diff))} ₫</div>
+                    <div class="text-xs mt-1">Cần thêm tiền để đủ hạn mức thanh toán.</div>
+                `;
+            }
+        }
+
+        // Copy summary details to clipboard
+        function copySummary() {
+            let currentTotal = 0;
+            let details = [];
+
+            denominations.forEach(d => {
+                const count = counts[d.value] || 0;
+                if (count > 0) {
+                    const subtotal = count * d.value;
+                    currentTotal += subtotal;
+                    details.push(`• ${d.label} (${formatMoney(d.value)}₫): ${count} tờ = ${formatMoney(subtotal)} ₫`);
+                }
+            });
+
+            if (details.length === 0) {
+                showToast('Chưa có dữ liệu tiền mặt để sao chép!');
+                return;
+            }
+
+            const textToCopy = `--- PHIẾU TỔNG HỢP ĐẾM TIỀN ---\nThời gian: ${new Date().toLocaleString('vi-VN')}\n\n${details.join('\n')}\n\n👉 TỔNG CỘNG: ${formatMoney(currentTotal)} ₫`;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Đã sao chép tổng hợp vào khay nhớ tạm!');
+            } catch (err) {
+                showToast('Không thể sao chép tự động!');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Save entry to Local History
+        function saveToHistory() {
+            let currentTotal = 0;
+            let totalNotes = 0;
+            let summaryItems = [];
+
+            denominations.forEach(d => {
+                const count = counts[d.value] || 0;
+                if (count > 0) {
+                    currentTotal += count * d.value;
+                    totalNotes += count;
+                    summaryItems.push({ label: d.label, value: d.value, count });
+                }
+            });
+
+            if (currentTotal === 0) {
+                showToast('Vui lòng nhập số tiền trước khi lưu');
+                return;
+            }
+
+            const historyItem = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toLocaleDateString('vi-VN'),
+                amount: currentTotal,
+                notes: totalNotes,
+                items: summaryItems
+            };
+
+            history.unshift(historyItem);
+            if (history.length > 30) history.pop();
+
+            saveHistoryToStorage();
+            renderHistory();
+            showToast('Đã lưu vào lịch sử!');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            if (history.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Chưa có lịch sử đếm nào được lưu</p>';
+                return;
+            }
+
+            container.innerHTML = history.map(item => `
+                <div onclick="viewHistoryDetail(${item.id})" class="flex justify-between items-center bg-slate-50 hover:bg-emerald-50/50 p-2.5 rounded-lg border border-slate-200 cursor-pointer transition group">
+                    <div class="pr-2">
+                        <div class="font-bold text-emerald-800 text-sm whitespace-nowrap group-hover:text-emerald-600">${formatMoney(item.amount)} ₫</div>
+                        <div class="text-[11px] text-slate-400 whitespace-nowrap">${item.date} lúc ${item.timestamp} • ${item.notes} tờ</div>
+                    </div>
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <span class="text-xs text-emerald-600 opacity-0 group-hover:opacity-100 transition hidden sm:inline">Chi tiết</span>
+                        <button onclick="event.stopPropagation(); removeHistoryItem(${item.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-md hover:bg-white transition">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // View history detail in Modal
+        function viewHistoryDetail(id) {
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            document.getElementById('modalTitle').innerText = `Lịch sử đếm - ${formatMoney(item.amount)} ₫`;
+            document.getElementById('modalSubtitle').innerText = `${item.date} lúc ${item.timestamp} • Tổng ${item.notes} tờ`;
+            document.getElementById('modalTotal').innerText = `${formatMoney(item.amount)} ₫`;
+
+            // Assign handler to load data button
+            const btnLoad = document.getElementById('btnLoadHistoryData');
+            btnLoad.onclick = function() {
+                loadHistoryDataToBoard(item);
+            };
+
+            const bodyEl = document.getElementById('modalBody');
+            bodyEl.innerHTML = item.items.map(detail => {
+                const subtotal = detail.count * detail.value;
+                return `
+                    <div class="flex justify-between items-center p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-700 text-sm">${detail.label} (${formatMoney(detail.value)}₫)</span>
+                            <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">x ${detail.count} tờ</span>
+                        </div>
+                        <div class="font-semibold text-slate-800 text-sm">${formatMoney(subtotal)} ₫</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('historyModal').classList.remove('hidden');
+        }
+
+        // Load data from selected history record back to the input form
+        function loadHistoryDataToBoard(item) {
+            // Clear current inputs first
+            denominations.forEach(d => {
+                counts[d.value] = 0;
+            });
+
+            // Populate counts from item
+            item.items.forEach(detail => {
+                counts[detail.value] = detail.count;
+            });
+
+            // Update UI inputs and subtotals
+            denominations.forEach(d => {
+                const countVal = counts[d.value] || 0;
+                const inputEl = document.getElementById(`input-${d.value}`);
+                if (inputEl) {
+                    inputEl.value = countVal > 0 ? countVal : '';
+                }
+                updateSubtotal(d.value);
+            });
+
+            calculateTotal();
+            closeModal();
+            showToast('Đã tải lại dữ liệu đếm từ lịch sử!');
+        }
+
+        function closeModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+        }
+
+        function removeHistoryItem(id) {
+            history = history.filter(h => h.id !== id);
+            saveHistoryToStorage();
+            renderHistory();
+            showToast('Đã xóa 1 mục lịch sử');
+        }
+
+        function clearHistory() {
+            if (history.length === 0) return;
+            history = [];
+            saveHistoryToStorage();
+            renderHistory();
+            showToast('Đã xóa toàn bộ lịch sử đếm');
+        }
+
+        function saveHistoryToStorage() {
+            try {
+                localStorage.setItem('vnd_counter_history', JSON.stringify(history));
+            } catch (e) {}
+        }
+
+        function loadHistory() {
+            try {
+                const saved = localStorage.getItem('vnd_counter_history');
+                if (saved) {
+                    history = JSON.parse(saved);
+                    renderHistory();
+                }
+            } catch (e) {}
+        }
+
+        // Show Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.innerText = message;
+            
+            toast.classList.remove('translate-y-16', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-16', 'opacity-0');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
